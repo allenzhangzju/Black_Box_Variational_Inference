@@ -58,9 +58,14 @@ for epoch in range(num_epochs):
         log_sigma2_s.data+=torch.mul(rho[dim:],grad[dim:])#step
         accuracy_list.append(accuracyCalc(mu_s,log_sigma2_s,test_data,dim))#在测试集上计算accuracy
         variance_list.append(mu1_varianceCalc(mu1))#计算μ1的方差
-        print('{:.8f}, {:.8f}, {:.8f}'.format(\
-            elbo_list[len(elbo_list)-1],
-            accuracy_list[len(accuracy_list)-1],
-            variance_list[len(variance_list)-1]))
+        if (i+1)%10==0:
+            print('Epoch[{}/{}], step[{}/{}]'.format(\
+                epoch+1,
+                num_epochs,
+                i+1,len(train_loader)))
+            print('ELBP: {:.3f}, acc: {:.3f}, Var: {:.3f}\n'.format(\
+                elbo_list[len(elbo_list)-1],
+                accuracy_list[len(accuracy_list)-1],
+                variance_list[len(variance_list)-1]))
         
 
