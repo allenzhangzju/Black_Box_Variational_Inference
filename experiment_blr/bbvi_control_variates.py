@@ -38,6 +38,7 @@ for epoch in range(num_epochs):
         #过程变量
         f=torch.zeros((dim*2,S))
         h=torch.zeros((dim*2,S))
+        a_para=torch.ones(dim*2)
         gradient=torch.zeros((dim*2,S))
         elbo=torch.zeros(S)
         mu1=np.zeros(S)
@@ -47,19 +48,21 @@ for epoch in range(num_epochs):
             log_p=log_P(images,labels,z_sample,dim)
             log_q=log_Q(mu_s,log_sigma2_s,z_sample)
             log_q.backward()#这里用自动求导
-            elbo[s]=log_p-log_q#这里记录elbo
-            h[0:dim,s]=mu_s.grad#这里记录h
-            h[dim:,s]=log_sigma2_s.grad
-            f[0:dim,s]=h[0:dim,s]*elbo[s]#这里记录梯度
-            f[dim:,s]=h[dim:,s]*elbo[s]
+            with torch.no_grad():
+                elbo[s]=log_p-log_q#这里记录elbo
+                h[0:dim,s]=mu_s.grad#这里记录h
+                h[dim:,s]=log_sigma2_s.grad
+                f[0:dim,s]=h[0:dim,s]*elbo[s]#这里记录梯度
+                f[dim:,s]=h[dim:,s]*elbo[s]
             mu_s.grad.data.zero_()#清除梯度，为准备下一次迭代
             log_sigma2_s.grad.data.zero_()
-        a=control_variates_a(f,h,dim)
-        gradient=f-torch.matmul(torch.diag(a),h)
-        mu1=gradient[0].detach().numpy()#这里记录μ1的梯度
-        grad=gradient.mean(1)#求梯度均值
-        G+=torch.matmul(grad.view(dim*2,-1),grad.view(-1,dim*2))#AdaGrad
-        rho=eta/torch.sqrt(torch.diag(G))#AdaGrad
+        with torch.no_grad():
+            a_para=control_variates_a(f,h,dim)
+            gradient=f-torch.matmul(torch.diag(a_para),h)
+            mu1=gradient[0].detach().numpy()#这里记录μ1的梯度
+            grad=gradient.mean(1)#求梯度均值
+            G+=torch.matmul(grad.view(dim*2,-1),grad.view(-1,dim*2))#AdaGrad
+            rho=eta/torch.sqrt(torch.diag(G))#AdaGrad
         mu_s.data+=torch.mul(rho[0:dim],grad[0:dim])#step
         log_sigma2_s.data+=torch.mul(rho[dim:],grad[dim:])#step
         elbo_list.append(np.mean(elbo.detach().numpy()))#求elbo的均值加入list

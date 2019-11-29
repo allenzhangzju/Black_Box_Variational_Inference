@@ -47,6 +47,7 @@ def rao_blackwellization_elbo(mu_s,log_sigma2_s,images,labels,z_sample,dim):
     log_q=normal.log_prob(z_sample)#这里的log_q是一个向量，不同的i不一样
     return log_joint-log_q
 
+@torch.no_grad()
 def control_variates_a(f,h,dim):
     '''
     计算control variates的系数，返回一个dim*2维度的向量
@@ -60,7 +61,7 @@ def control_variates_a(f,h,dim):
     for i in range(dim):
         cov=torch.mean(f1[i]*h1[i])-torch.mean(f1[i])*torch.mean(h1[i])
         cov+=torch.mean(f2[i]*h2[i])-torch.mean(f2[i])*torch.mean(h2[i])
-        a[i]=cov/(h1[i].var()+h2[i].var())
+        a[i]=cov/(torch.var(h1[i])+torch.var(h2[i]))
     return torch.cat([a,a],0)
 
 
