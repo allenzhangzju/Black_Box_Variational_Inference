@@ -26,6 +26,7 @@ def log_P(images,labels,z_sample,dim):
     log_likelihood=torch.sum(torch.log(torch.sigmoid(torch.mul(a,labels))),0)
     return log_likelihood+log_prior
 
+@torch.no_grad()
 def rao_blackwellization_elbo(mu_s,log_sigma2_s,images,labels,z_sample,dim):
     '''
     计算 log p_i(x,z_s)-log q_i(z_s|lambda_i)，返回一个dim维度的向量
