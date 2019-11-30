@@ -6,13 +6,13 @@ from data_load import DatasetFromCSV
 from functions import*
 import os
 '''
-bbvi without Rao_Blackwellization and Control Variates
+bbvi with reparameterzie
 '''
 num_epochs=15
 batchSize=256
 S=20
 dim=28*28+1
-eta=0.05
+eta=1
 #读取数据
 transform=transforms.ToTensor()
 train_data=DatasetFromCSV('./train_images_csv.csv','./train_labels_csv.csv',transforms=transform)
@@ -41,14 +41,12 @@ for epoch in range(num_epochs):
         mu1=np.zeros(S)
         #采样
         for s in range(S):
-            z_sample=sampleZ(mu_s,log_sigma2_s,dim)
-            log_p=log_P(images,labels,z_sample,dim)
-            log_q=log_Q(mu_s,log_sigma2_s,z_sample)
-            log_q.backward()#这里用自动求导
+            temp=elbo_repara(images,labels,mu_s,log_sigma2_s,dim)
+            temp.backward()
             with torch.no_grad():
-                elbo[s]=log_p-log_q#这里记录elbo
-                gradient[0:dim,s]=mu_s.grad*elbo[s]#这里记录梯度
-                gradient[dim:,s]=log_sigma2_s.grad*elbo[s]
+                elbo[s]=temp
+                gradient[0:dim,s]=mu_s.grad#这里记录梯度
+                gradient[dim:,s]=log_sigma2_s.grad
                 mu1[s]=gradient[0,s].item()#这里记录μ1的梯度
             mu_s.grad.data.zero_()#清除梯度，为准备下一次迭代
             log_sigma2_s.grad.data.zero_()
@@ -74,4 +72,4 @@ for epoch in range(num_epochs):
 if not os.path.exists('./result'):
     os.makedirs('./result')
 result=np.array([elbo_list,variance_list,accuracy_list])
-np.save('./result/bbvi_null.npy',result)
+np.save('./result/bbvi_repara.npy',result)

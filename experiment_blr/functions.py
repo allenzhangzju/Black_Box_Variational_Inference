@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 
+@torch.no_grad()
 def sampleZ(mu_s,log_sigma2_s,dim):
     '''
     采样,返回一组向量
@@ -27,6 +28,22 @@ def log_P(images,labels,z_sample,dim):
     return log_likelihood+log_prior
 
 @torch.no_grad()
+def grad_log_Q(mu_s,log_sigma2_s,z_sample):
+    sigma2=torch.exp(log_sigma2_s)
+    grad_mu=(z_sample-mu_s)/sigma2
+    grad_sigma=((-1/(2*sigma2))+(grad_mu**2/2))*sigma2
+    return torch.cat([grad_mu,grad_sigma],0)
+
+def elbo_repara(images,labels,mu_s,log_sigma2_s,dim):
+    '''
+    用于reparameterzie方法的elbo计算，返回一个标量
+    '''
+    std=torch.sqrt(torch.exp(log_sigma2_s))
+    eps=torch.randn_like(std)
+    z=mu_s+eps*std
+    return log_P(images,labels,z,dim)-log_Q(mu_s,log_sigma2_s,z)
+
+@torch.no_grad()
 def rao_blackwellization_elbo(mu_s,log_sigma2_s,images,labels,z_sample,dim):
     '''
     计算 log p_i(x,z_s)-log q_i(z_s|lambda_i)，返回一个dim维度的向量
@@ -40,12 +57,12 @@ def rao_blackwellization_elbo(mu_s,log_sigma2_s,images,labels,z_sample,dim):
     a=torch.matmul(images,z_sample)
     log_likelihood=torch.sum(torch.log(torch.sigmoid(torch.mul(a,labels))))*\
         torch.ones(len(z_sample))#这里的log_likelihood每个i都一样
-    normal=torch.distributions.normal.Normal(torch.zeros(dim),torch.ones(dim))
-    log_prior=normal.log_prob(z_sample)#这里的log_prior不同的i不一样
+    normal1=torch.distributions.normal.Normal(torch.zeros(dim),torch.ones(dim))
+    log_prior=normal1.log_prob(z_sample)#这里的log_prior不同的i不一样
     log_joint=log_likelihood+log_prior#注：这里的log_joint依然是一个向量，不同的i不一样
     std=torch.sqrt(torch.exp(log_sigma2_s))
-    normal=torch.distributions.normal.Normal(mu_s,std)
-    log_q=normal.log_prob(z_sample)#这里的log_q是一个向量，不同的i不一样
+    normal2=torch.distributions.normal.Normal(mu_s,std)
+    log_q=normal2.log_prob(z_sample)#这里的log_q是一个向量，不同的i不一样
     return log_joint-log_q
 
 @torch.no_grad()
@@ -65,8 +82,12 @@ def control_variates_a(f,h,dim):
         a[i]=cov/(torch.var(h1[i])+torch.var(h2[i]))
     return torch.cat([a,a],0)
 
-
+@torch.no_grad()
 def accuracyCalc(mu_s,log_sigma2_s,test_data,dim):
+    '''
+    在测试集上计算正确率
+    注：这里为了简化计算，直接用了均值，没采样
+    '''
     images=torch.tensor(test_data.images.values/255).float()
     images=torch.cat([images,torch.ones((len(images),1))],1)
     labels=torch.tensor(test_data.labels.values).view(len(images))
@@ -77,7 +98,11 @@ def accuracyCalc(mu_s,log_sigma2_s,test_data,dim):
 def mu1_varianceCalc(mu1):
     return np.var(np.array(mu1))
 
+@torch.no_grad()
 def data_preprocess(data):
+    '''
+    数据预处理，包括/255和加偏置两个步骤
+    '''
     images=data[0].view(-1,28*28)
     lens=len(images)
     labels=data[1].view(lens)

@@ -6,7 +6,7 @@ from data_load import DatasetFromCSV
 from functions import*
 import os
 '''
-bbvi without Rao_Blackwellization and Control Variates
+bbvi with Rao_Blackwellization and control variates
 '''
 num_epochs=15
 batchSize=256
@@ -36,6 +36,8 @@ for epoch in range(num_epochs):
     for i ,data in enumerate(train_loader):
         images,labels=data_preprocess(data)
         #过程变量
+        f=torch.zeros((dim*2,S))
+        h=torch.zeros((dim*2,S))
         gradient=torch.zeros((dim*2,S))
         elbo=torch.zeros(S)
         mu1=np.zeros(S)
@@ -47,12 +49,17 @@ for epoch in range(num_epochs):
             log_q.backward()#这里用自动求导
             with torch.no_grad():
                 elbo[s]=log_p-log_q#这里记录elbo
-                gradient[0:dim,s]=mu_s.grad*elbo[s]#这里记录梯度
-                gradient[dim:,s]=log_sigma2_s.grad*elbo[s]
-                mu1[s]=gradient[0,s].item()#这里记录μ1的梯度
+                rao_blackwellization=rao_blackwellization_elbo(mu_s,log_sigma2_s,images,labels,z_sample,dim)#这里计算公式（6）的系数
+                h[0:dim,s]=mu_s.grad#这里记录h
+                h[dim:,s]=log_sigma2_s.grad
+                f[0:dim,s]=h[0:dim,s]*rao_blackwellization#这里记录梯度
+                f[dim:,s]=h[dim:,s]*rao_blackwellization
             mu_s.grad.data.zero_()#清除梯度，为准备下一次迭代
             log_sigma2_s.grad.data.zero_()
         with torch.no_grad():
+            a_para=control_variates_a(f,h,dim)
+            gradient=f-torch.matmul(torch.diag(a_para),h)
+            mu1=gradient[0].detach().numpy()#这里记录μ1的梯度
             grad=gradient.mean(1)#求梯度均值
             G+=torch.matmul(grad.view(dim*2,-1),grad.view(-1,dim*2))#AdaGrad
             rho=eta/torch.sqrt(torch.diag(G))#AdaGrad
@@ -74,4 +81,4 @@ for epoch in range(num_epochs):
 if not os.path.exists('./result'):
     os.makedirs('./result')
 result=np.array([elbo_list,variance_list,accuracy_list])
-np.save('./result/bbvi_null.npy',result)
+np.save('./result/bbvi_rbcv.npy',result)

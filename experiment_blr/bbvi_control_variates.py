@@ -8,11 +8,11 @@ import os
 '''
 bbvi with Control Variates only
 '''
-num_epochs=30
-batchSize=32
-S=5
+num_epochs=15
+batchSize=256
+S=20
 dim=28*28+1
-eta=0.2
+eta=0.05
 #读取数据
 transform=transforms.ToTensor()
 train_data=DatasetFromCSV('./train_images_csv.csv','./train_labels_csv.csv',transforms=transform)
@@ -68,7 +68,7 @@ for epoch in range(num_epochs):
         elbo_list.append(np.mean(elbo.detach().numpy()))#求elbo的均值加入list
         accuracy_list.append(accuracyCalc(mu_s,log_sigma2_s,test_data,dim))#在测试集上计算accuracy
         variance_list.append(mu1_varianceCalc(mu1))#计算μ1的方差
-        if (i+1)%50==0:
+        if (i+1)%10==0 or i<=10 and epoch==0:
             print('Epoch[{}/{}], step[{}/{}]'.format(\
                 epoch+1,
                 num_epochs,
