@@ -12,7 +12,7 @@ num_epochs=15
 batchSize=256
 S=20
 dim=28*28+1
-eta=0.05
+eta=0.1
 #读取数据
 transform=transforms.ToTensor()
 train_data=DatasetFromCSV('./train_images_csv.csv','./train_labels_csv.csv',transforms=transform)
@@ -35,6 +35,7 @@ G=torch.zeros((dim*2,dim*2))
 for epoch in range(num_epochs):
     for i ,data in enumerate(train_loader):
         images,labels=data_preprocess(data)
+        M=len(train_loader)
         #过程变量
         f=torch.zeros((dim*2,S))
         h=torch.zeros((dim*2,S))
@@ -45,13 +46,13 @@ for epoch in range(num_epochs):
         #采样
         for s in range(S):
             z_sample=sampleZ(mu_s,log_sigma2_s,dim)
-            log_p=log_P(images,labels,z_sample,dim)
-            log_q=log_Q(mu_s,log_sigma2_s,z_sample)
+            log_p=log_P(images,labels,z_sample,dim,M)
+            log_q=log_Q(mu_s,log_sigma2_s,z_sample,M)
             log_q.backward()#这里用自动求导
             with torch.no_grad():
                 elbo[s]=log_p-log_q#这里记录elbo
-                h[0:dim,s]=mu_s.grad#这里记录h
-                h[dim:,s]=log_sigma2_s.grad
+                h[0:dim,s]=mu_s.grad*M#这里记录h
+                h[dim:,s]=log_sigma2_s.grad*M
                 f[0:dim,s]=h[0:dim,s]*elbo[s]#这里记录梯度
                 f[dim:,s]=h[dim:,s]*elbo[s]
             mu_s.grad.data.zero_()#清除梯度，为准备下一次迭代

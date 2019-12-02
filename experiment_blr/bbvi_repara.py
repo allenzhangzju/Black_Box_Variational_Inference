@@ -35,17 +35,18 @@ G=torch.zeros((dim*2,dim*2))
 for epoch in range(num_epochs):
     for i ,data in enumerate(train_loader):
         images,labels=data_preprocess(data)
+        M=len(train_loader)
         #过程变量
         gradient=torch.zeros((dim*2,S))
         elbo=torch.zeros(S)
         mu1=np.zeros(S)
         #采样
         for s in range(S):
-            temp=elbo_repara(images,labels,mu_s,log_sigma2_s,dim)
+            temp=elbo_repara(images,labels,mu_s,log_sigma2_s,dim,M)
             temp.backward()
             with torch.no_grad():
                 elbo[s]=temp
-                gradient[0:dim,s]=mu_s.grad#这里记录梯度
+                gradient[0:dim,s]=mu_s.grad#这里记录梯度,这里就不用补M了
                 gradient[dim:,s]=log_sigma2_s.grad
                 mu1[s]=gradient[0,s].item()#这里记录μ1的梯度
             mu_s.grad.data.zero_()#清除梯度，为准备下一次迭代

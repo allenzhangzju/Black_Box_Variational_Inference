@@ -9,15 +9,15 @@ def sampleZ(mu_s,log_sigma2_s,dim):
     std=torch.sqrt(torch.exp(log_sigma2_s))
     return torch.normal(mu_s,std)
 
-def log_Q(mu_s,log_sigma2_s,z_sample):
+def log_Q(mu_s,log_sigma2_s,z_sample,M):
     '''
     计算log q，返回一个标量
     '''
     std=torch.sqrt(torch.exp(log_sigma2_s))
     normal=torch.distributions.normal.Normal(mu_s,std)
-    return torch.sum(normal.log_prob(z_sample),0)
+    return torch.sum(normal.log_prob(z_sample),0)/M
 
-def log_P(images,labels,z_sample,dim):
+def log_P(images,labels,z_sample,dim,M):
     '''
     计算log p（先验+似然），返回一个标量
     '''
@@ -25,7 +25,7 @@ def log_P(images,labels,z_sample,dim):
     log_prior=torch.sum(normal.log_prob(z_sample),0)
     a=torch.matmul(images,z_sample)
     log_likelihood=torch.sum(torch.log(torch.sigmoid(torch.mul(a,labels))),0)
-    return log_likelihood+log_prior
+    return log_likelihood+log_prior/M
 
 @torch.no_grad()
 def grad_log_Q(mu_s,log_sigma2_s,z_sample):
@@ -34,17 +34,17 @@ def grad_log_Q(mu_s,log_sigma2_s,z_sample):
     grad_sigma=((-1/(2*sigma2))+(grad_mu**2/2))*sigma2
     return torch.cat([grad_mu,grad_sigma],0)
 
-def elbo_repara(images,labels,mu_s,log_sigma2_s,dim):
+def elbo_repara(images,labels,mu_s,log_sigma2_s,dim,M):
     '''
     用于reparameterzie方法的elbo计算，返回一个标量
     '''
     std=torch.sqrt(torch.exp(log_sigma2_s))
     eps=torch.randn_like(std)
     z=mu_s+eps*std
-    return log_P(images,labels,z,dim)-log_Q(mu_s,log_sigma2_s,z)
+    return log_P(images,labels,z,dim,M)-log_Q(mu_s,log_sigma2_s,z,M)
 
 @torch.no_grad()
-def rao_blackwellization_elbo(mu_s,log_sigma2_s,images,labels,z_sample,dim):
+def rao_blackwellization_elbo(mu_s,log_sigma2_s,images,labels,z_sample,dim,M):
     '''
     计算 log p_i(x,z_s)-log q_i(z_s|lambda_i)，返回一个dim维度的向量
     参考Black Box Variational Inference 的公式（6）
@@ -58,12 +58,12 @@ def rao_blackwellization_elbo(mu_s,log_sigma2_s,images,labels,z_sample,dim):
     log_likelihood=torch.sum(torch.log(torch.sigmoid(torch.mul(a,labels))))*\
         torch.ones(len(z_sample))#这里的log_likelihood每个i都一样
     normal1=torch.distributions.normal.Normal(torch.zeros(dim),torch.ones(dim))
-    log_prior=normal1.log_prob(z_sample)#这里的log_prior不同的i不一样
+    log_prior=normal1.log_prob(z_sample)/M#这里的log_prior不同的i不一样
     log_joint=log_likelihood+log_prior#注：这里的log_joint依然是一个向量，不同的i不一样
     std=torch.sqrt(torch.exp(log_sigma2_s))
     normal2=torch.distributions.normal.Normal(mu_s,std)
     log_q=normal2.log_prob(z_sample)#这里的log_q是一个向量，不同的i不一样
-    return log_joint-log_q
+    return log_joint-log_q/M
 
 @torch.no_grad()
 def control_variates_a(f,h,dim):
