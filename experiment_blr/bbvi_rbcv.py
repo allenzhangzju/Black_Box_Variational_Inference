@@ -17,7 +17,7 @@ eta=0.1
 transform=transforms.ToTensor()
 train_data=DatasetFromCSV('./train_images_csv.csv','./train_labels_csv.csv',transforms=transform)
 test_data=DatasetFromCSV('./test_images_csv.csv','./test_labels_csv.csv',transforms=transform)
-train_loader=DataLoader(train_data,batch_size=batchSize,shuffle=False)
+train_loader=DataLoader(train_data,batch_size=batchSize,shuffle=True)
 
 #定义变量，前28*28是权重w，最后一个是偏差项bias
 mu_s=torch.zeros(dim,requires_grad=True)
