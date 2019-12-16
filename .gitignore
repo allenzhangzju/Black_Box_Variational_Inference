@@ -1,0 +1,17 @@
+
+*.json
+example_github_logistic-reg-bbvi-blog/.vscode/settings.json
+*.pyc
+experiment_blr_v2/dataset/MNIST/raw/t10k-images-idx3-ubyte
+experiment_blr_v2/dataset/MNIST/raw/t10k-labels-idx1-ubyte
+experiment_blr_v2/dataset/MNIST/raw/t10k-labels-idx1-ubyte.gz
+experiment_blr_v2/dataset/MNIST/raw/train-images-idx3-ubyte
+experiment_blr_v2/dataset/MNIST/raw/train-images-idx3-ubyte.gz
+experiment_blr_v2/dataset/MNIST/raw/train-labels-idx1-ubyte
+experiment_blr_v2/dataset/MNIST/raw/train-labels-idx1-ubyte.gz
+experiment_blr/result/elbo:15,256,0.05.png
+experiment_blr/result/elbo:15,256,0.1.png
+experiment_blr/result/elbo:30,32,0.2.png
+experiment_blr/result/var:30,32,0.2.png
+experiment_blr_v2/dataset/MNIST/processed/test.pt
+experiment_blr_v2/dataset/MNIST/processed/training.pt
