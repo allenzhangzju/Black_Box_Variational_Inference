@@ -14,7 +14,7 @@ def ng_para_transfer(para,dim):
 @torch.no_grad()
 def sampleZ(para,dim,num_S):
     '''
-    采样,返回一组向量
+    采样
     '''
     mu,std=ng_para_transfer(para,dim)
     mu_s=torch.Tensor(num_S,dim).copy_(mu.view(-1,dim))
@@ -38,6 +38,9 @@ def ng_log_Qs(para,z_samples,dim):
 
 @torch.no_grad()
 def ng_log_Priors(z_samples,dim):
+    '''
+    计算先验
+    '''
     num_S=len(z_samples)
     normal=torch.distributions.normal.Normal(torch.zeros(dim),torch.ones(dim))
     probs=torch.zeros(num_S)
@@ -48,6 +51,9 @@ def ng_log_Priors(z_samples,dim):
 
 @torch.no_grad()
 def ng_log_Likelihoods(images,labels,z_samples,dim):
+    '''
+    计算似然
+    '''
     batch_size=len(labels)
     num_S=len(z_samples)
     a=torch.matmul(images,z_samples.transpose(0,1))
@@ -57,9 +63,9 @@ def ng_log_Likelihoods(images,labels,z_samples,dim):
     Sum=torch.sum(log_likelihoods,0)
     return Sum
 
-
-
-
+'''
+计算梯度
+'''
 def _log_Q(para,z_sample,dim):
     mu=para[0:dim]
     log_sigma2=para[dim:]
@@ -70,6 +76,15 @@ def grad_log_Q(para,z_sample,dim):
     grad=torch.autograd.grad(_log_Q(para,z_sample,dim),para)
     return grad
 
+@torch.no_grad()
+def elbo_evaluate(images,labels,para,dim,scale,num_St):
+    z_samples=sampleZ(para,dim,num_St)
+    log_qs=ng_log_Qs(para,z_samples,dim)
+    log_priors=ng_log_Priors(z_samples,dim)
+    log_likelihoods=ng_log_Likelihoods(images,labels,z_samples,dim)
+    elbo=log_likelihoods+log_priors/scale-log_qs/scale
+    avg=torch.sum(elbo)/num_St
+    return avg
 
 @torch.no_grad()
 def accuracyCalc(mu_s,log_sigma2_s,test_data,dim):
