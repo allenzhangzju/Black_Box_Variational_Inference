@@ -60,7 +60,7 @@ for epoch in range(num_epochs):
                 elbo_list[len(elbo_list)-1]))
 
 
-if not os.path.exists('./result/datas'):
-    os.makedirs('./result/datas')
+if not os.path.exists('./result'):
+    os.makedirs('./result')
 result=np.array(elbo_list)
-np.save('./result/datas/bbvi_basic.npy',result)
+np.save('./result/bbvi_basic.npy',result)

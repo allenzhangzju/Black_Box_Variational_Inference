@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-bbvi_basic=np.load('./result/datas/bbvi_basic.npy')
+bbvi_basic=np.load('./result/bbvi_basic.npy')
 
 x=np.array(range(len(bbvi_basic)))
 
