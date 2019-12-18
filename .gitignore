@@ -15,3 +15,7 @@ experiment_blr/result/elbo:30,32,0.2.png
 experiment_blr/result/var:30,32,0.2.png
 experiment_blr_v2/dataset/MNIST/processed/test.pt
 experiment_blr_v2/dataset/MNIST/processed/training.pt
+experiment_blr/result/elbo:15,256,0.05.png
+experiment_blr/result/elbo:15,256,0.1.png
+experiment_blr/result/elbo:30,32,0.2.png
+experiment_blr/result/var:30,32,0.2.png
