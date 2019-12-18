@@ -12,7 +12,7 @@ num_epochs=15
 batchSize=256
 num_S=20
 dim=28*28+1
-eta=0.1
+eta=0.2
 num_St=1000
 #读取数据
 transform=transforms.ToTensor()

@@ -112,9 +112,28 @@ def Delta_Calc(images,labels,para1,para0,eta,dim,num_S,M,scale):
     for i in range(M):
         para_a=((1-A[i])*para0+A[i]*para1).clone().detach()
         Delta[i]=hessian_F_Calc(images,labels,para_a,delta,eta,dim,num_S,scale)
-    avg=torch.mean(Delta,0)/M
+    avg=torch.mean(Delta,0)
     return avg
 
+def hessian_F_Calc_approx(images,labels,para_a,delta,eta,dim,num_S,scale):
+    hessian_F=torch.zeros((num_S,dim*2))
+    para=para_a.clone().detach().requires_grad_(True)
+    gradients=torch.zeros((num_S,dim*2))
+    z_samples=sampleZ(para,dim,num_S)
+    log_qs=ng_log_Qs(para,z_samples,dim)
+    log_priors=ng_log_Priors(z_samples,dim)
+    log_likelihoods=ng_log_Likelihoods(images,labels,z_samples,dim)
+    for s in range(num_S):
+        gradients[s]=grad_log_Q(para,z_samples[s],dim)[0]
+    elbo_temp=log_likelihoods+log_priors/scale-log_qs/scale
+    phi_eta=phi_eta_Calc_approx(para,z_samples,dim,delta,eta)
+    for i in range(num_S):
+        hessian_F[i]=elbo_temp[i]*phi_eta[i]+\
+            (elbo_temp[i]-1)*\
+                torch.matmul(torch.matmul(gradients[i].view(dim*2,-1),gradients[i].view(-1,dim*2)),delta)
+    avg=torch.mean(hessian_F,0)
+    return avg
+    
 def hessian_F_Calc(images,labels,para_a,delta,eta,dim,num_S,scale):
     hessian_F=torch.zeros((num_S,dim*2))
     para=para_a.clone().detach().requires_grad_(True)
@@ -126,15 +145,15 @@ def hessian_F_Calc(images,labels,para_a,delta,eta,dim,num_S,scale):
     for s in range(num_S):
         gradients[s]=grad_log_Q(para,z_samples[s],dim)[0]
     elbo_temp=log_likelihoods+log_priors/scale-log_qs/scale
-    phi_eta=phi_eta_Calc(para,z_samples,dim,delta,eta)
+    phi=phi_Calc(para,z_samples,dim,delta)
     for i in range(num_S):
-        hessian_F[i]=elbo_temp[i]*phi_eta[i]+\
-            (elbo_temp[i]-1)*\
-                torch.matmul(torch.matmul(gradients[i].view(dim*2,-1),gradients[i].view(-1,dim*2)),delta)
-    avg=torch.mean(hessian_F,0)/num_S
+        partA=(elbo_temp[i]-1)*torch.matmul(torch.matmul(gradients[i].view(dim*2,-1),gradients[i].view(-1,dim*2)),delta)
+        partB=elbo_temp[i]*phi[i]
+        hessian_F[i]=partA+partB
+    avg=torch.mean(hessian_F,0)
     return avg
-    
-def phi_eta_Calc(para,z_samples,dim,delta,eta):
+
+def phi_eta_Calc_approx(para,z_samples,dim,delta,eta):
     phi_eta=torch.zeros((len(z_samples),dim*2))
     para1=(para+eta*delta).clone().detach().requires_grad_(True)
     para0=(para-eta*delta).clone().detach().requires_grad_(True)
@@ -143,6 +162,17 @@ def phi_eta_Calc(para,z_samples,dim,delta,eta):
         grad_para0=grad_log_Q(para0,z_samples[i],dim)[0]
         phi_eta[i]=(grad_para1-grad_para0)/(2*eta)
     return phi_eta
+
+def phi_Calc(para,z_samples,dim,delta):
+    para_leaf=para.clone().detach().requires_grad_(True)
+    phis=torch.zeros((len(z_samples),dim*2))
+    for  i in range(len(z_samples)):
+        grad=torch.autograd.grad(_log_Q(para_leaf,z_samples[i],dim),\
+            para_leaf,create_graph=True)
+        a=torch.matmul(grad[0],delta)
+        phi=torch.autograd.grad(a,para_leaf)
+        phis[i]=phi[0]
+    return phis
 '''
 ----------------------------------------------------------------------
 '''
