@@ -7,7 +7,7 @@ num_St=500
   
 ## bbvi  
 num_S=10#训练的采样数量  
-eta=0.2
+eta=0.4
   
 
 # abbvi  

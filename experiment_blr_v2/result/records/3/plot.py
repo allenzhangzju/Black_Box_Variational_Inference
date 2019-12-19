@@ -1,8 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-bbvi_basic=np.load('./result/records/2/bbvi_basic.npy')
-abbvi_basic=np.load('./result/records/2/abbvi_basic.npy')
+bbvi_basic=np.load('./result/records/3/bbvi_basic.npy')
+abbvi_basic=np.load('./result/records/3/abbvi_basic.npy')
 
 x=np.array(range(len(bbvi_basic)))
 
@@ -19,7 +19,7 @@ num_epochs=15
 batchSize=120
 
 num_S=10#训练的采样数量
-eta=0.2
+eta=0.3
 
 num_S=10#训练的采样数量
 eta=0.05

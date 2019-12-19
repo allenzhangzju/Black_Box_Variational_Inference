@@ -12,7 +12,7 @@ num_epochs=15
 batchSize=120
 num_S=10#训练的采样数量
 dim=28*28+1
-eta=0.2#步长
+eta=0.3#步长
 num_St=5000#测试的采样数量
 #读取数据
 transform=transforms.ToTensor()
@@ -40,6 +40,7 @@ for epoch in range(num_epochs):
         gradients=torch.zeros((num_S,dim*2))
         #ELBO evaluate
         elbo_list.append(elbo_evaluate(images,labels,para,dim,scale,num_St).item())
+        if epoch>=7: continue
         #算法起始位置
         z_samples=sampleZ(para,dim,num_S)
         log_qs=ng_log_Qs(para,z_samples,dim)

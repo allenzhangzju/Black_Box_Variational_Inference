@@ -1,16 +1,16 @@
 #setting:  
-##both
+## both  
 num_epochs=15  
 batchSize=120  
 num_St=500  
 
   
-##bbvi  
+## bbvi  
 num_S=10#训练的采样数量  
 eta=0.1  
   
 
-#abbvi  
+# abbvi  
 num_S=10#训练的采样数量  
 eta=0.05  
 k=0.4  
