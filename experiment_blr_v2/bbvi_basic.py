@@ -9,11 +9,11 @@ import os
 bbvi without Rao_Blackwellization and Control Variates
 '''
 num_epochs=15
-batchSize=256
-num_S=20
+batchSize=120
+num_S=10#训练的采样数量
 dim=28*28+1
-eta=0.2
-num_St=1000
+eta=0.1#步长
+num_St=5000#测试的采样数量
 #读取数据
 transform=transforms.ToTensor()
 train_data=DatasetFromCSV('./dataset/train_images_csv.csv','./dataset/train_labels_csv.csv',transforms=transform)
@@ -22,7 +22,7 @@ train_loader=DataLoader(train_data,batch_size=batchSize,shuffle=True)
 
 #定义分布参数
 para=torch.zeros(dim*2,requires_grad=True)
-para[dim:]=torch.ones(dim)*(-1)
+#para[dim:]=torch.ones(dim)*(-1)
 
 
 #需要储存结果

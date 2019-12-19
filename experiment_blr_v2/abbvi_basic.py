@@ -9,15 +9,15 @@ import os
 abbvi without any extension
 '''
 num_epochs=15
-batchSize=256
-num_S=20#训练的采样数量
+batchSize=120
+num_S=10#训练的采样数量
 dim=28*28+1#这里+1是偏置
 eta=0.05#eta、k、w、c这四个参数是和论文对应的
-k=0.2
+k=0.4
 w=1
-c=1e7
+c=10e5
 M=10
-num_St=1000#测试的采样数量
+num_St=5000#测试的采样数量
 #读取数据
 transform=transforms.ToTensor()
 train_data=DatasetFromCSV('./dataset/train_images_csv.csv','./dataset/train_labels_csv.csv',transforms=transform)
@@ -26,7 +26,7 @@ train_loader=DataLoader(train_data,batch_size=batchSize,shuffle=True)
 
 #定义分布参数
 para=torch.zeros(dim*2,requires_grad=True)
-para[dim:]=torch.ones(dim)*(-1)
+#para[dim:]=torch.ones(dim)*(-1)
 
 
 #需要储存结果
@@ -64,8 +64,8 @@ for epoch in range(num_epochs):
         G_pow2+=temp
         #计算Delta
         Delta=Delta_Calc(images,labels,para,para_last,eta,dim,num_S,M,scale)
-        #test_D=Delta.clone().detach().numpy()
-        #test_G=grad_d.clone().detach().numpy()
+        test_D=Delta.clone().detach().numpy()
+        test_G=grad_d.clone().detach().numpy()
         grad_d=(1-b)*(grad_d+Delta)+b*nabla_F
         print(b)
         #print information

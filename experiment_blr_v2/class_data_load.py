@@ -27,7 +27,7 @@ class DatasetFromCSV(Dataset):
 '''
 transform=transforms.ToTensor()
 train_data=DatasetFromCSV('./dataset/train_images_csv.csv','./dataset/train_labels_csv.csv',transforms=transform)
-train_loader=DataLoader(train_data,batch_size=1,shuffle=False)
+train_loader=DataLoader(train_data,batch_size=1,shuffle=True)
 for i,data in enumerate(train_loader):
     images=data[0].view(-1,28,28)[0]
     print(data[1])
