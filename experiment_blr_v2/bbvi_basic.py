@@ -9,7 +9,7 @@ import os
 bbvi without Rao_Blackwellization and Control Variates
 '''
 num_epochs=15
-batchSize=120
+batchSize=64
 num_S=5#训练的采样数量
 dim=28*28+1
 eta=0.3#步长
