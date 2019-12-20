@@ -1,4 +1,4 @@
-#setting:  
+# setting:  
 ## both  
 num_epochs=15  
 batchSize=120  

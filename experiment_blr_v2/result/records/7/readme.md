@@ -1,7 +1,7 @@
 # setting:  
 ## both  
-num_epochs=15  
-batchSize=120  
+num_epochs=20  
+batchSize=240  
 num_St=2000  
 
   
@@ -15,6 +15,6 @@ num_S=5#训练的采样数量
 eta=0.05  
 k=0.4  
 w=1  
-c=5e6 -> b=1~0.21  
+c=10e6 -> b=1~0.226  
 M=10  
 
