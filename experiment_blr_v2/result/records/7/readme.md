@@ -1,6 +1,6 @@
 # setting:  
 ## both  
-num_epochs=20  
+num_epochs=30  
 batchSize=240  
 num_St=2000  
 
