@@ -4,6 +4,7 @@ from  torch.utils.data.dataloader import DataLoader
 from torchvision import transforms
 from data_load import DatasetFromCSV
 from functions import*
+from functionsV2 import elbo_evaluate
 import os
 '''
 bbvi without Rao_Blackwellization and Control Variates
@@ -59,7 +60,8 @@ for epoch in range(num_epochs):
             rho=eta/torch.sqrt(torch.diag(G))#AdaGrad
         mu_s.data+=torch.mul(rho[0:dim],grad[0:dim])#step
         log_sigma2_s.data+=torch.mul(rho[dim:],grad[dim:])#step
-        elbo_list.append(np.mean(elbo.detach().numpy()))#求elbo的均值加入list
+        #elbo_list.append(np.mean(elbo.detach().numpy()))#求elbo的均值加入list
+        elbo_list.append(elbo_evaluate(images,labels,torch.cat([mu_s,log_sigma2_s]),dim,M,2000))
         accuracy_list.append(accuracyCalc(mu_s,log_sigma2_s,test_data,dim))#在测试集上计算accuracy
         variance_list.append(mu1_varianceCalc(mu1))#计算μ1的方差
         if (i+1)%10==0 or i<=10 and epoch==0:

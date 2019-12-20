@@ -9,10 +9,10 @@ import os
 bbvi without Rao_Blackwellization and Control Variates
 '''
 num_epochs=15
-batchSize=120
+batchSize=256
 num_S=10#训练的采样数量
 dim=28*28+1
-eta=0.3#步长
+eta=0.1#步长
 num_St=5000#测试的采样数量
 #读取数据
 transform=transforms.ToTensor()

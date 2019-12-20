@@ -10,11 +10,12 @@ bbvi_rbcv=np.load('./result/bbvi_rbcv.npy')
 x=np.array(range(len(bbvi_null[0])))
 
 
-plt.plot(x,bbvi_null[0],label='basic')
+
 plt.plot(x,bbvi_rao_blackwellization[0],label='rao_blackwell')
 plt.plot(x,bbvi_cv[0],label='cv')
 plt.plot(x,bbvi_rbcv[0],label='rb+cv')
 plt.plot(x,bbvi_repara[0],label='repara')
+plt.plot(x,bbvi_null[0],label='basic')
 plt.legend()
 plt.figure()
 plt.yscale('log')
