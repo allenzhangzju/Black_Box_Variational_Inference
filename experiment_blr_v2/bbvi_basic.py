@@ -9,11 +9,11 @@ import os
 bbvi without Rao_Blackwellization and Control Variates
 '''
 num_epochs=15
-batchSize=256
-num_S=10#训练的采样数量
+batchSize=120
+num_S=5#训练的采样数量
 dim=28*28+1
-eta=0.1#步长
-num_St=5000#测试的采样数量
+eta=0.3#步长
+num_St=2000#测试的采样数量
 #读取数据
 transform=transforms.ToTensor()
 train_data=DatasetFromCSV('./dataset/train_images_csv.csv','./dataset/train_labels_csv.csv',transforms=transform)
@@ -40,7 +40,6 @@ for epoch in range(num_epochs):
         gradients=torch.zeros((num_S,dim*2))
         #ELBO evaluate
         elbo_list.append(elbo_evaluate(images,labels,para,dim,scale,num_St).item())
-        if epoch>=7: continue
         #算法起始位置
         z_samples=sampleZ(para,dim,num_S)
         log_qs=ng_log_Qs(para,z_samples,dim)
@@ -50,7 +49,7 @@ for epoch in range(num_epochs):
             gradients[s]=grad_log_Q(para,z_samples[s],dim)[0]
         elbo_temp=log_likelihoods+log_priors/scale-log_qs/scale
         grad_temp=torch.matmul(torch.diag(elbo_temp),gradients)
-        grad_avg=torch.sum(grad_temp,0)/num_S
+        grad_avg=torch.mean(grad_temp,0)
         G+=torch.matmul(grad_avg.view(dim*2,-1),grad_avg.view(-1,dim*2))
         rho=eta/torch.sqrt(torch.diag(G))
         para.data+=rho*grad_avg

@@ -100,7 +100,7 @@ def nabla_F_Calc(images,labels,para,dim,num_S,scale):
         gradients[s]=grad_log_Q(para,z_samples[s],dim)[0]
     elbo_temp=log_likelihoods+log_priors/scale-log_qs/scale
     grad_temp=torch.matmul(torch.diag(elbo_temp),gradients)
-    grad_d=torch.sum(grad_temp,0)/num_S
+    grad_d=torch.mean(grad_temp,0)
     G_pow2=torch.pow(grad_d.norm(),2)
     return grad_d,G_pow2
 

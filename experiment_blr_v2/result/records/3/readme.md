@@ -2,7 +2,7 @@
 ## both  
 num_epochs=15  
 batchSize=120  
-num_St=500  
+num_St=5000  
 
   
 ## bbvi  

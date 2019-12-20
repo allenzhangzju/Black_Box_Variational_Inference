@@ -10,14 +10,14 @@ abbvi without any extension
 '''
 num_epochs=15
 batchSize=120
-num_S=10#训练的采样数量
+num_S=5#训练的采样数量
 dim=28*28+1#这里+1是偏置
 eta=0.05#eta、k、w、c这四个参数是和论文对应的
 k=0.4
 w=1
-c=10e5
+c=5e6
 M=10
-num_St=5000#测试的采样数量
+num_St=2000#测试的采样数量
 #读取数据
 transform=transforms.ToTensor()
 train_data=DatasetFromCSV('./dataset/train_images_csv.csv','./dataset/train_labels_csv.csv',transforms=transform)
