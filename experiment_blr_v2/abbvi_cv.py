@@ -6,7 +6,7 @@ from class_data_load import DatasetFromCSV
 from functions import*
 import os
 '''
-abbvi without any extension
+abbvi with Control Variate
 '''
 num_epochs=15
 batchSize=120
@@ -15,7 +15,7 @@ dim=28*28+1#这里+1是偏置
 eta=0.05#eta、k、w、c这四个参数是和论文对应的
 k=0.4
 w=1
-c=5e6
+c=5.5e6
 M=10
 num_St=2000#测试的采样数量
 #读取数据
@@ -49,7 +49,7 @@ for epoch in range(num_epochs):
         elbo_list.append(elbo_evaluate(images,labels,para,dim,scale,num_St).item())
         #算法起始位置
         if(epoch==0 and i==0):
-            grad_d,G_pow2=nabla_F_Calc(images,labels,para,dim,num_S,scale)
+            grad_d,G_pow2=nabla_F_cv_Calc(images,labels,para,dim,num_S,scale)
             continue
         #计算步长
         rho=k/(w+G_pow2)**(1/3)
@@ -60,12 +60,19 @@ for epoch in range(num_epochs):
         b=c*rho*rho
         if b>1: b=1
         #计算nabla_F及二范数
-        nabla_F,temp=nabla_F_Calc(images,labels,para,dim,num_S,scale)
+        nabla_F,temp=nabla_F_cv_Calc(images,labels,para,dim,num_S,scale)
         G_pow2+=temp
-        #计算Delta
-        Delta=Delta_Calc(images,labels,para,para_last,eta,dim,num_S,M,scale)
-        test_D=Delta.clone().detach().numpy()
-        test_G=grad_d.clone().detach().numpy()
+        #计算Delta  **************************************************************************
+        Delta_temp=torch.zeros((M,dim*2))
+        delta=(para-para_last).clone().detach().requires_grad_(False)
+        A=torch.rand(M)
+        for j in range(M):
+            para_a=((1-A[j])*para_last+A[j]*para).clone().detach()
+            Delta_temp[j]=hessian_F_cv_Calc(images,labels,para_a,delta,dim,num_S,scale)
+        Delta=Delta_temp.mean(0)
+        #************************************************************************************
+        #test_D=Delta.clone().detach().numpy()
+        #test_G=grad_d.clone().detach().numpy()
         grad_d=(1-b)*(grad_d+Delta)+b*nabla_F
         print(b)
         #print information
@@ -81,4 +88,4 @@ for epoch in range(num_epochs):
 if not os.path.exists('./result'):
     os.makedirs('./result')
 result=np.array(elbo_list)
-np.save('./result/abbvi_basic.npy',result)
+np.save('./result/abbvi_cv.npy',result)

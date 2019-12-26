@@ -131,7 +131,7 @@ def nabla_F_cv_Calc(images,labels,para,dim,num_S,scale):
 @torch.no_grad()
 def cvA_Calc(f,h,dim):
     '''
-    Control Variates
+    Control Variates 的系数计算
     '''
     num_S=len(f)
     f_avg=f.mean(0)
@@ -179,7 +179,7 @@ def hessian_F_Calc_approx(images,labels,para_a,delta,eta,dim,num_S,scale):
     
 def hessian_F_Calc(images,labels,para_a,delta,eta,dim,num_S,scale):
     '''
-    式（3）
+    式（3） =  nabla^2 F * delta
     '''
     hessian_F=torch.zeros((num_S,dim*2))
     para=para_a.clone().detach().requires_grad_(True)
@@ -200,7 +200,29 @@ def hessian_F_Calc(images,labels,para_a,delta,eta,dim,num_S,scale):
     return avg
 
 def hessian_F_cv_Calc(images,labels,para_a,delta,dim,num_S,scale):
-    pass
+    '''
+    式（3）的Control Variates 版本
+    '''
+    f=torch.zeros((num_S,dim*2))
+    h=torch.zeros((num_S,dim*2))
+    para=para_a.clone().detach().requires_grad_(True)
+    gradients=torch.zeros((num_S,dim*2))
+    z_samples=sampleZ(para,dim,num_S)
+    log_qs=ng_log_Qs(para,z_samples,dim)
+    log_priors=ng_log_Priors(z_samples,dim)
+    log_likelihoods=ng_log_Likelihoods(images,labels,z_samples,dim)
+    for s in range(num_S):
+        gradients[s]=grad_log_Q(para,z_samples[s],dim)[0]
+    elbo_temp=log_likelihoods+log_priors/scale-log_qs/scale
+    phi=phi_Calc(para,z_samples,dim,delta)
+    for i in range(num_S):
+        h[i]=torch.matmul(torch.matmul(gradients[i].view(dim*2,-1),gradients[i].view(-1,dim*2)),delta)+\
+            phi[i]
+        f[i]=h[i]*elbo_temp[i]
+    a=cvA_Calc(f,h,dim)
+    results=f-torch.mul(a,h)
+    avg=results.mean(0)
+    return avg
 
 def phi_eta_Calc_approx(para,z_samples,dim,delta,eta):
     '''
