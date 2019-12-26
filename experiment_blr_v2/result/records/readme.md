@@ -12,4 +12,8 @@ batchSize=64, num_S=5, epoch=15, num_St=2000
 降低了batchSize，两种算法性能间的差异更小，且波动大  
 ## records 7  
 batchSize=240, num_S=5, epoch=30, num_St=2000  
-增大batchSize，算法差异更明显了
+增大batchSize，算法差异更明显了  
+## records 8  
+在records 5 的基础上增加了bbvi_cv和abbvi_cv  
+abbvi_cv的b需要比abbvi的b更大些，否则不稳定很容易出现elbo=-inf  
+abbvi_cv和bbvi_cv差别不大
