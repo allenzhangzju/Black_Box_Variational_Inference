@@ -6,17 +6,13 @@ from class_data_load import DatasetFromCSV
 from functions import*
 import os
 '''
-abbvi without any extension
+bbvi with Control Variates
 '''
 num_epochs=15
 batchSize=120
 num_S=5#训练的采样数量
-dim=28*28+1#这里+1是偏置
-eta=0.05#eta、k、w、c这四个参数是和论文对应的
-k=0.4
-w=1
-c=5e6
-M=10
+dim=28*28+1
+eta=0.3#步长
 num_St=2000#测试的采样数量
 #读取数据
 transform=transforms.ToTensor()
@@ -32,44 +28,37 @@ para=torch.zeros(dim*2,requires_grad=True)
 #需要储存结果
 elbo_list=[]
 
-#变量
-G_pow2=None
-grad_d=None
-para_last=None
-
-test_D=None
-test_G=None
+#AdaGrad
+G=torch.zeros((dim*2,dim*2))
 
 #开始迭代
 for epoch in range(num_epochs):
     for i ,data in enumerate(train_loader):
         images,labels=data_preprocess(data)
         scale=len(train_loader)
+        #过程变量
+        gradients=torch.zeros((num_S,dim*2))
         #ELBO evaluate
         elbo_list.append(elbo_evaluate(images,labels,para,dim,scale,num_St).item())
         #算法起始位置
-        if(epoch==0 and i==0):
-            grad_d,G_pow2=nabla_F_Calc(images,labels,para,dim,num_S,scale)
-            continue
-        #计算步长
-        rho=k/(w+G_pow2)**(1/3)
-        #迭代更新
-        para_last=para.clone().detach()
-        para.data+=rho*grad_d
-        #计算bt
-        b=c*rho*rho
-        if b>1: b=1
-        #计算nabla_F及二范数
-        nabla_F,temp=nabla_F_Calc(images,labels,para,dim,num_S,scale)
-        G_pow2+=temp
-        #计算Delta
-        Delta=Delta_Calc(images,labels,para,para_last,eta,dim,num_S,M,scale)
-        test_D=Delta.clone().detach().numpy()
-        test_G=grad_d.clone().detach().numpy()
-        grad_d=(1-b)*(grad_d+Delta)+b*nabla_F
-        print(b)
+        z_samples=sampleZ(para,dim,num_S)
+        log_qs=ng_log_Qs(para,z_samples,dim)
+        log_priors=ng_log_Priors(z_samples,dim)
+        log_likelihoods=ng_log_Likelihoods(images,labels,z_samples,dim)
+        for s in range(len(z_samples)):
+            gradients[s]=grad_log_Q(para,z_samples[s],dim)[0]
+        elbo_temp=log_likelihoods+log_priors/scale-log_qs/scale
+        f=torch.matmul(torch.diag(elbo_temp),gradients)
+        h=gradients
+        #Control Variates
+        a=cvA_Calc(f,h,dim)
+        grads=f-torch.mul(a,h)
+        grad_avg=grads.mean(0)
+        G+=torch.matmul(grad_avg.view(dim*2,-1),grad_avg.view(-1,dim*2))
+        rho=eta/torch.sqrt(torch.diag(G))
+        para.data+=rho*grad_avg
         #print information
-        if 1:
+        if (i+1)%10==0 or i<=10 and epoch==0:
             print('Epoch[{}/{}], step[{}/{}]'.format(\
                 epoch+1,
                 num_epochs,
@@ -81,4 +70,4 @@ for epoch in range(num_epochs):
 if not os.path.exists('./result'):
     os.makedirs('./result')
 result=np.array(elbo_list)
-np.save('./result/abbvi_basic.npy',result)
+np.save('./result/bbvi_cv.npy',result)

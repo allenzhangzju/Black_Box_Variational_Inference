@@ -78,6 +78,9 @@ def grad_log_Q(para,z_sample,dim):
 
 @torch.no_grad()
 def elbo_evaluate(images,labels,para,dim,scale,num_St):
+    '''
+    测试ELBO
+    '''
     z_samples=sampleZ(para,dim,num_St)
     log_qs=ng_log_Qs(para,z_samples,dim)
     log_priors=ng_log_Priors(z_samples,dim)
@@ -103,6 +106,19 @@ def nabla_F_Calc(images,labels,para,dim,num_S,scale):
     grad_d=torch.mean(grad_temp,0)
     G_pow2=torch.pow(grad_d.norm(),2)
     return grad_d,G_pow2
+
+@torch.no_grad()
+def cvA_Calc(f,h,dim):
+    num_S=len(f)
+    f_avg=f.mean(0)
+    h_avg=h.mean(0)
+    f_avgs=torch.Tensor(num_S,dim*2).copy_(f_avg.view(-1,dim*2))
+    h_avgs=torch.Tensor(num_S,dim*2).copy_(h_avg.view(-1,dim*2))
+    f0=f-f_avgs
+    h0=h-h_avgs
+    a=torch.diag(torch.matmul(f0.transpose(0,1),h0))/\
+        torch.diag(torch.matmul(h0.transpose(0,1),h0))
+    return torch.Tensor(num_S,dim*2).copy_(a.view(-1,dim*2))
 
 
 def Delta_Calc(images,labels,para1,para0,eta,dim,num_S,M,scale):
@@ -204,48 +220,3 @@ def data_preprocess(data):
     images=torch.cat([images,torch.ones((lens,1))],1)#补bias
     return images,labels
 
-def Delta(images,labels,M,mu_1,log_sigma2_1,mu_0,log_sigma2_0,S,sizaA,dim):
-    grad=torch.zeros(dim*2)
-    A=torch.rand(sizaA)
-    for a in A:
-        with torch.no_grad():
-            mu=(1-a)*mu_0+a*mu_1
-            log_sigma2=(1-a)*log_sigma2_0+a*log_sigma2_1
-        hessian=Hessian(images,labels,M,mu,log_sigma2,S,dim)*M*M
-        grad+=torch.matmul(hessian,torch.cat([(mu_1-mu_0),(log_sigma2_1-log_sigma2_0)]))
-    result=grad/sizaA
-    return result
-
-def Hessian_log_Q(M,mu,log_sigma2,z_sample,dim):
-    hessian=torch.zeros((dim*2,dim*2))
-    para_leaf=torch.tensor(torch.cat([mu,log_sigma2]),requires_grad=True)
-    grad_para=torch.autograd.grad(log_Q(para_leaf[0:dim],para_leaf[dim:],z_sample,M),\
-        para_leaf,create_graph=True)
-    i=0
-    for anygrad in grad_para[0]:
-        temp=torch.autograd.grad(anygrad,para_leaf,retain_graph=True)[0]
-        hessian[i,:]=temp.view(-1,dim*2)
-        i+=1
-    return hessian
-
-
-
-
-def Hessian(images,labels,M,mu,log_sigma2,S,dim):
-    mu_t=torch.tensor(mu,requires_grad=True)
-    log_sigma2_t=torch.tensor(log_sigma2,requires_grad=True)
-    result=torch.zeros((dim*2,dim*2))
-    for i in range(S):
-        z_sample=sampleZ(mu_t,log_sigma2_t,dim)
-        log_q=log_Q(mu_t,log_sigma2_t,z_sample,M)
-        with torch.no_grad():
-            f=log_P(images,labels,z_sample,dim,M)+log_q
-        log_q.backward()
-        grad_para=torch.cat([mu_t.grad,log_sigma2_t.grad])
-        mu_t.grad.zero_()
-        log_sigma2_t.grad.zero_()
-        result+=f*Hessian_log_Q(M,mu_t,log_sigma2_t,z_sample,dim)+\
-            torch.matmul(grad_para.view(dim*2,-1),grad_para.view(-1,dim*2))*(f-1)
-    result/=S
-
-    return result
