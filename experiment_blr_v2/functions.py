@@ -107,8 +107,32 @@ def nabla_F_Calc(images,labels,para,dim,num_S,scale):
     G_pow2=torch.pow(grad_d.norm(),2)
     return grad_d,G_pow2
 
+def nabla_F_cv_Calc(images,labels,para,dim,num_S,scale):
+    '''
+    nabla_F_Calc的Control Variates版本
+    '''
+    gradients=torch.zeros((num_S,dim*2))
+    z_samples=sampleZ(para,dim,num_S)
+    log_qs=ng_log_Qs(para,z_samples,dim)
+    log_priors=ng_log_Priors(z_samples,dim)
+    log_likelihoods=ng_log_Likelihoods(images,labels,z_samples,dim)
+    for s in range(len(z_samples)):
+        gradients[s]=grad_log_Q(para,z_samples[s],dim)[0]
+    elbo_temp=log_likelihoods+log_priors/scale-log_qs/scale
+    f=torch.matmul(torch.diag(elbo_temp),gradients)
+    h=gradients
+    #Control Variates
+    a=cvA_Calc(f,h,dim)
+    grads=f-torch.mul(a,h)
+    grad_d=grads.mean(0)
+    G_pow2=torch.pow(grad_d.norm(),2)
+    return grad_d,G_pow2
+
 @torch.no_grad()
 def cvA_Calc(f,h,dim):
+    '''
+    Control Variates
+    '''
     num_S=len(f)
     f_avg=f.mean(0)
     h_avg=h.mean(0)
@@ -132,6 +156,9 @@ def Delta_Calc(images,labels,para1,para0,eta,dim,num_S,M,scale):
     return avg
 
 def hessian_F_Calc_approx(images,labels,para_a,delta,eta,dim,num_S,scale):
+    '''
+    式（9）
+    '''
     hessian_F=torch.zeros((num_S,dim*2))
     para=para_a.clone().detach().requires_grad_(True)
     gradients=torch.zeros((num_S,dim*2))
@@ -151,6 +178,9 @@ def hessian_F_Calc_approx(images,labels,para_a,delta,eta,dim,num_S,scale):
     return avg
     
 def hessian_F_Calc(images,labels,para_a,delta,eta,dim,num_S,scale):
+    '''
+    式（3）
+    '''
     hessian_F=torch.zeros((num_S,dim*2))
     para=para_a.clone().detach().requires_grad_(True)
     gradients=torch.zeros((num_S,dim*2))
@@ -169,7 +199,13 @@ def hessian_F_Calc(images,labels,para_a,delta,eta,dim,num_S,scale):
     avg=torch.mean(hessian_F,0)
     return avg
 
+def hessian_F_cv_Calc(images,labels,para_a,delta,dim,num_S,scale):
+    pass
+
 def phi_eta_Calc_approx(para,z_samples,dim,delta,eta):
+    '''
+    近似计算 phi_eta(x,delta)，式（7）
+    '''
     phi_eta=torch.zeros((len(z_samples),dim*2))
     para1=(para+eta*delta).clone().detach().requires_grad_(True)
     para0=(para-eta*delta).clone().detach().requires_grad_(True)
@@ -180,6 +216,9 @@ def phi_eta_Calc_approx(para,z_samples,dim,delta,eta):
     return phi_eta
 
 def phi_Calc(para,z_samples,dim,delta):
+    '''
+    精确计算 phi(x)=hessian logp(z|x) * delta
+    '''
     para_leaf=para.clone().detach().requires_grad_(True)
     phis=torch.zeros((len(z_samples),dim*2))
     for  i in range(len(z_samples)):
