@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+import random
 
 
 def ng_para_transfer(para,dim):
@@ -171,9 +172,7 @@ def hessian_F_Calc_approx(images,labels,para_a,delta,eta,dim,num_S,scale):
     elbo_temp=log_likelihoods+log_priors/scale-log_qs/scale
     phi_eta=phi_eta_Calc_approx(para,z_samples,dim,delta,eta)
     for i in range(num_S):
-        hessian_F[i]=elbo_temp[i]*phi_eta[i]+\
-            (elbo_temp[i]-1)*\
-                torch.matmul(torch.matmul(gradients[i].view(dim*2,-1),gradients[i].view(-1,dim*2)),delta)
+        hessian_F[i]=elbo_temp[i]*phi_eta[i]+(elbo_temp[i]-1)*gradients[i]*torch.matmul(gradients[i],delta)
     avg=torch.mean(hessian_F,0)
     return avg
     
@@ -193,7 +192,7 @@ def hessian_F_Calc(images,labels,para_a,delta,eta,dim,num_S,scale):
     elbo_temp=log_likelihoods+log_priors/scale-log_qs/scale
     phi=phi_Calc(para,z_samples,dim,delta)
     for i in range(num_S):
-        partA=(elbo_temp[i]-1)*torch.matmul(torch.matmul(gradients[i].view(dim*2,-1),gradients[i].view(-1,dim*2)),delta)
+        partA=(elbo_temp[i]-1)*gradients[i]*torch.matmul(gradients[i],delta)
         partB=elbo_temp[i]*phi[i]
         hessian_F[i]=partA+partB
     avg=torch.mean(hessian_F,0)
@@ -216,8 +215,7 @@ def hessian_F_cv_Calc(images,labels,para_a,delta,dim,num_S,scale):
     elbo_temp=log_likelihoods+log_priors/scale-log_qs/scale
     phi=phi_Calc(para,z_samples,dim,delta)
     for i in range(num_S):
-        h[i]=torch.matmul(torch.matmul(gradients[i].view(dim*2,-1),gradients[i].view(-1,dim*2)),delta)+\
-            phi[i]
+        h[i]=gradients[i]*torch.matmul(gradients[i],delta)+phi[i]
         f[i]=h[i]*elbo_temp[i]
     a=cvA_Calc(f,h,dim)
     results=f-torch.mul(a,h)
@@ -266,8 +264,6 @@ def accuracyCalc(mu_s,log_sigma2_s,test_data,dim):
     accuracy=np.sum(np.round(torch.sigmoid(torch.mul(a,labels)).detach().numpy()))/len(labels)
     return accuracy
     
-def mu1_varianceCalc(mu1):
-    return np.var(np.array(mu1))
 
 @torch.no_grad()
 def data_preprocess(data):

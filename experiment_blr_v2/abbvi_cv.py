@@ -14,8 +14,8 @@ num_S=5#训练的采样数量
 dim=28*28+1#这里+1是偏置
 eta=0.05#eta、k、w、c这四个参数是和论文对应的
 k=0.4
-w=1
-c=5.5e6
+w=0.6e9
+c=1.5e6
 M=10
 num_St=2000#测试的采样数量
 #读取数据
@@ -37,8 +37,6 @@ G_pow2=None
 grad_d=None
 para_last=None
 
-test_D=None
-test_G=None
 
 #开始迭代
 for epoch in range(num_epochs):
@@ -71,10 +69,8 @@ for epoch in range(num_epochs):
             Delta_temp[j]=hessian_F_cv_Calc(images,labels,para_a,delta,dim,num_S,scale)
         Delta=Delta_temp.mean(0)
         #************************************************************************************
-        #test_D=Delta.clone().detach().numpy()
-        #test_G=grad_d.clone().detach().numpy()
         grad_d=(1-b)*(grad_d+Delta)+b*nabla_F
-        print(b)
+        print(b,torch.max(Delta),torch.max(grad_d))
         #print information
         if 1:
             print('Epoch[{}/{}], step[{}/{}]'.format(\
