@@ -16,7 +16,7 @@ plt.plot(x,ref,label='repara',alpha=1,color='r')
 #plt.plot(x,test,label='test',alpha=0.8)
 plt.plot(x,abbvi_cv,label='abbvi_cv',alpha=0.8)
 
-#plt.plot(x,bbvi_basic,label='bbvi_basic',alpha=0.8)
+plt.plot(x,bbvi_basic,label='bbvi_basic',alpha=0.8)
 plt.plot(x,abbvi_basic,label='abbvi_basic',alpha=1)
 plt.plot(x,bbvi_cv,label='bbvi_cv',alpha=1)
 
