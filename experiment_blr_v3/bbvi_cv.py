@@ -8,8 +8,8 @@ import os
 '''
 bbvi with Control Variates
 '''
-num_epochs=15
-batchSize=120
+num_epochs=50
+batchSize=500
 num_S=5#训练的采样数量
 dim=28*28+1
 eta=0.3#步长

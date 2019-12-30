@@ -8,14 +8,14 @@ import os
 '''
 abbvi with Control Variate
 '''
-num_epochs=15
-batchSize=120
+num_epochs=50
+batchSize=500
 num_S=5#训练的采样数量
 dim=28*28+1#这里+1是偏置
 #eta=0.05#eta、k、w、c这四个参数是和论文对应的
 k=0.4
-w=0.6e9
-c=6e6
+w=0.5e10
+c=0.25e8
 M=10
 num_St=2000#测试的采样数量
 #读取数据
@@ -69,7 +69,7 @@ for epoch in range(num_epochs):
         A=torch.rand(M)
         for j in range(M):
             para_a=((1-A[j])*para_last+A[j]*para).clone().detach()
-            Delta_temp[j]=hessian_F_Calc(images,labels,para_a,delta,dim,num_S,scale,revise)
+            Delta_temp[j]=hessian_F_cv_Calc(images,labels,para_a,delta,dim,num_S,scale,revise)
         Delta=Delta_temp.mean(0)
         #************************************************************************************
         grad_d=(1-b)*(grad_d+Delta)+b*nabla_F

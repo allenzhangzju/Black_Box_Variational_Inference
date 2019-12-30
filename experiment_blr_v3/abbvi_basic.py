@@ -8,14 +8,14 @@ import os
 '''
 abbvi without any extension
 '''
-num_epochs=15
-batchSize=120
+num_epochs=50
+batchSize=500
 num_S=5#训练的采样数量
 dim=28*28+1#这里+1是偏置
 #eta=0.05#eta、k、w、c这四个参数是和论文对应的
-k=0.4
-w=0.6e9
-c=5e6
+k=0.3
+w=1e10
+c=0.7e8
 M=10
 num_St=2000#测试的采样数量
 #读取数据

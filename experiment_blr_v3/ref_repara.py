@@ -25,8 +25,8 @@ def elbo_repara(images,labels,para,num_S,dim,scale,revise):
 '''
 ref repara
 '''
-num_epochs=15
-batchSize=120
+num_epochs=50
+batchSize=500
 num_S=5#训练的采样数量
 dim=28*28+1
 eta=0.1#步长
