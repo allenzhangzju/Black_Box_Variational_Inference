@@ -15,7 +15,7 @@ plt.plot(repara,label='repara',alpha=0.8)
 plt.plot(abbvi_basic,label='abbvi_basic',alpha=0.8)
 plt.plot(bbvi_basic,label='bbvi_basic',alpha=0.8)
 plt.plot(bbvi_cv,label='bbvi_cv',alpha=0.8)
-plt.plot(abbvi_cv,label='abbvi_cv',alpha=0.8)
+#plt.plot(abbvi_cv,label='abbvi_cv',alpha=0.8)
 
 
 
