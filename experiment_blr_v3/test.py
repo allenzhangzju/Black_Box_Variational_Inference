@@ -13,13 +13,14 @@ batchSize=500
 num_S=5#训练的采样数量
 dim=28*28+1#这里+1是偏置
 #eta=0.05#eta、k、w、c这四个参数是和论文对应的
-k=0.33
-w=2.5e9
-c=0.4e8
+k=0.3
+w=1e9
+c=7e7
 M=10
 num_St=2000#测试的采样数量
 #读取数据
-transform=transforms.ToTensor()
+transform=transforms.Compose(
+    [transforms.ToTensor()])
 train_data=DatasetFromCSV('./dataset/train_images_csv.csv','./dataset/train_labels_csv.csv',transforms=transform)
 test_data=DatasetFromCSV('./dataset/test_images_csv.csv','./dataset/test_labels_csv.csv',transforms=transform)
 train_loader=DataLoader(train_data,batch_size=batchSize,shuffle=True)
@@ -50,13 +51,14 @@ for epoch in range(num_epochs):
         elbo_list.append(elbo_evaluate(images,labels,para,dim,scale,revise,num_St).item())
         #算法起始位置
         if(epoch==0 and i==0):
-            grad_d,G_pow2=nabla_F_cv_Calc(images,labels,para,dim,num_S,scale,revise)
+            grad_d,G_pow2=nabla_F_Calc(images,labels,para,dim,num_S,scale,revise)
             continue
         #计算步长
         rho=k/(w+G_pow2)**(1/3)
         #迭代更新
         para_last=para.clone().detach()
-        para.data+=rho*grad_d
+        update=rho*grad_d
+        para.data+=update
         #计算bt
         b=c*rho*rho
         if b>1: b=1
@@ -69,11 +71,11 @@ for epoch in range(num_epochs):
         A=torch.rand(M)
         for j in range(M):
             para_a=((1-A[j])*para_last+A[j]*para).clone().detach()
-            Delta_temp[j]=hessian_F_Calc(images,labels,para_a,delta,dim,num_S,scale,revise)
+            Delta_temp[j]=hessian_F_cv_Calc(images,labels,para_a,delta,dim,num_S,scale,revise)
         Delta=Delta_temp.mean(0)
         #************************************************************************************
         grad_d=(1-b)*(grad_d+Delta)+b*nabla_F
-        print(b,torch.max(Delta),torch.max(grad_d))
+        print(b,torch.median(update.abs()),torch.max(update.abs()))
         #print information
         if 1:
             print('Epoch[{}/{}], step[{}/{}]'.format(\

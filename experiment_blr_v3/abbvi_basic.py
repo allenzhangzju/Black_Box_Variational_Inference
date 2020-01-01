@@ -13,6 +13,7 @@ batchSize=500
 num_S=5#训练的采样数量
 dim=28*28+1#这里+1是偏置
 #eta=0.05#eta、k、w、c这四个参数是和论文对应的
+#k=0.4  w=8e10  c=0.7e8
 k=0.3
 w=1e10
 c=0.7e8
@@ -56,7 +57,8 @@ for epoch in range(num_epochs):
         rho=k/(w+G_pow2)**(1/3)
         #迭代更新
         para_last=para.clone().detach()
-        para.data+=rho*grad_d
+        update=rho*grad_d
+        para.data+=update
         #计算bt
         b=c*rho*rho
         if b>1: b=1
@@ -73,7 +75,7 @@ for epoch in range(num_epochs):
         Delta=Delta_temp.mean(0)
         #************************************************************************************
         grad_d=(1-b)*(grad_d+Delta)+b*nabla_F
-        print(b,torch.max(Delta),torch.max(grad_d))
+        print(b,torch.median(update.abs()),torch.max(update.abs()))
         #print information
         if 1:
             print('Epoch[{}/{}], step[{}/{}]'.format(\
