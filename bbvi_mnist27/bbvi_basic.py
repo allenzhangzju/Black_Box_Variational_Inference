@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import numpy as np
 import torch
 from  torch.utils.data.dataloader import DataLoader
@@ -62,9 +63,9 @@ for epoch in range(num_epochs):
         #print information
         if (epoch*len(train_loader)+i)%10==0:
             print('Epoch[{}/{}], step[{}/{}]'.format(\
-                epoch,
+                epoch+1,
                 num_epochs,
-                i,len(train_loader)))
+                i+1,len(train_loader)))
             print('ELBO: {:.3f}\n'.format(\
                 elbo_list[len(elbo_list)-1]))
 
@@ -74,5 +75,5 @@ if not os.path.exists('./result_elbo'):
 result=np.array(elbo_list)
 np.save('./result_elbo/bbvi_basic.npy',result)
 '''
-result=np.array(para_list)
+result=np.array(elbo_list)
 np.save(path,result)

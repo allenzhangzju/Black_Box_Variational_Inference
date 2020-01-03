@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import numpy as np
 import torch
 from  torch.utils.data.dataloader import DataLoader
@@ -5,6 +6,8 @@ from torchvision import transforms
 from class_data_load import DatasetFromCSV
 from functions import*
 import os
+import sys
+path=sys.argv[1]
 '''
 bbvi with Control Variates
 '''
@@ -13,7 +16,7 @@ batchSize=500
 num_S=5#训练的采样数量
 dim=28*28+1
 eta=0.3#步长
-num_St=2000#测试的采样数量
+num_St=5000#测试的采样数量
 #读取数据
 transform=transforms.ToTensor()
 train_data=DatasetFromCSV('./dataset/train_images_csv.csv','./dataset/train_labels_csv.csv',transforms=transform)
@@ -41,8 +44,9 @@ for epoch in range(num_epochs):
         #过程变量
         gradients=torch.zeros((num_S,dim*2))
         #ELBO evaluate & record para
-        para_list.append(para.clone().detach().numpy())
-        elbo_list.append(elbo_evaluate(images,labels,para,dim,scale,revise,num_St).item())
+        #para_list.append(para.clone().detach().numpy())
+        if (epoch*len(train_loader)+i)%10==0:
+            elbo_list.append(elbo_evaluate(images,labels,para,dim,scale,revise,num_St).item())
         #算法起始位置
         z_samples=sampleZ(para,dim,num_S)
         log_qs=ng_log_Qs(para,z_samples,dim)
@@ -61,7 +65,7 @@ for epoch in range(num_epochs):
         rho=eta/torch.sqrt(torch.diag(G))
         para.data+=rho*grad_avg
         #print information
-        if 1:
+        if (epoch*len(train_loader)+i)%10==0:
             print('Epoch[{}/{}], step[{}/{}]'.format(\
                 epoch+1,
                 num_epochs,
@@ -69,7 +73,7 @@ for epoch in range(num_epochs):
             print('ELBO: {:.3f}\n'.format(\
                 elbo_list[len(elbo_list)-1]))
 
-
+'''
 if not os.path.exists('./result_elbo'):
     os.makedirs('./result_elbo')
 result=np.array(elbo_list)
@@ -80,3 +84,6 @@ if not os.path.exists('./result_para'):
     os.makedirs('./result_para')
 result=np.array(para_list)
 np.save('./result_para/bbvi_cv.npy',result)
+'''
+result=np.array(elbo_list)
+np.save(path,result)
