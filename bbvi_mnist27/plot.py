@@ -6,7 +6,7 @@ bbvi_cv=[]
 abbvi_basic=[]
 
 num=10
-interval=10
+interval=10*5
 iter_perEpoch=25
 
 
@@ -14,9 +14,9 @@ for i in range(num):
     bbvi_basic.append(np.load('./elbos/bbvi_basic/{:}.npy'.format(i)))
     bbvi_cv.append(np.load('./elbos/bbvi_cv/{:}.npy'.format(i)))
     abbvi_basic.append(np.load('./elbos/abbvi_basic/{:}.npy'.format(i)))
-bbvi_basic=np.array(bbvi_basic)
-bbvi_cv=np.array(bbvi_cv)
-abbvi_basic=np.array(abbvi_basic)
+bbvi_basic=np.array(bbvi_basic)[:,0:len(bbvi_basic[0]):5]
+bbvi_cv=np.array(bbvi_cv)[:,0:len(bbvi_cv[0]):5]
+abbvi_basic=np.array(abbvi_basic)[:,0:len(abbvi_basic[0]):5]
 
 bbvi_basic_mean=np.mean(bbvi_basic,0)
 bbvi_cv_mean=np.mean(bbvi_cv,0)
@@ -31,6 +31,8 @@ plt.errorbar(x=x,y=bbvi_basic_mean,yerr=bbvi_basic_std,color='g',capsize=2,label
 plt.errorbar(x=x,y=bbvi_cv_mean,yerr=bbvi_cv_std,color='b',capsize=2,label='bbvi_cv')
 plt.errorbar(x=x,y=abbvi_basic_mean,yerr=abbvi_basic_std,color='r',capsize=2,label='abbvi_basic')
 plt.legend()
+plt.xlabel('Iterations')
+plt.ylabel('ELBO')
 plt.ylim([-1000,-200])
 '''
 plt.plot(bbvi_basic_mean,color='g')
