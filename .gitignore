@@ -33,3 +33,7 @@ bbvi_FashionMnist/dataset/test_images_csv.csv
 bbvi_FashionMnist/dataset/test_labels_csv.csv
 bbvi_FashionMnist/dataset/train_images_csv.csv
 bbvi_FashionMnist/dataset/train_labels_csv.csv
+bbvi_a9a/dataset/test_images_csv.csv
+bbvi_a9a/dataset/test_labels_csv.csv
+bbvi_a9a/dataset/train_images_csv.csv
+bbvi_a9a/dataset/train_labels_csv.csv
