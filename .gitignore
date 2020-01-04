@@ -19,6 +19,7 @@ experiment_blr/result/elbo:15,256,0.05.png
 experiment_blr/result/elbo:15,256,0.1.png
 experiment_blr/result/elbo:30,32,0.2.png
 experiment_blr/result/var:30,32,0.2.png
+<<<<<<< HEAD
 bbvi_FashionMnist27/dataset/FashionMNIST/processed/test.pt
 bbvi_FashionMnist27/dataset/FashionMNIST/processed/training.pt
 bbvi_FashionMnist27/dataset/FashionMNIST/raw/t10k-images-idx3-ubyte
@@ -29,3 +30,23 @@ bbvi_FashionMnist27/dataset/FashionMNIST/raw/train-images-idx3-ubyte
 bbvi_FashionMnist27/dataset/FashionMNIST/raw/train-images-idx3-ubyte.gz
 bbvi_FashionMnist27/dataset/FashionMNIST/raw/train-labels-idx1-ubyte
 bbvi_FashionMnist27/dataset/FashionMNIST/raw/train-labels-idx1-ubyte.gz
+=======
+bbvi_FashionMnist/dataset/FashionMNIST/processed/test.pt
+bbvi_FashionMnist/dataset/FashionMNIST/processed/training.pt
+bbvi_FashionMnist/dataset/FashionMNIST/raw/t10k-images-idx3-ubyte
+bbvi_FashionMnist/dataset/FashionMNIST/raw/t10k-images-idx3-ubyte.gz
+bbvi_FashionMnist/dataset/FashionMNIST/raw/t10k-labels-idx1-ubyte
+bbvi_FashionMnist/dataset/FashionMNIST/raw/t10k-labels-idx1-ubyte.gz
+bbvi_FashionMnist/dataset/FashionMNIST/raw/train-images-idx3-ubyte
+bbvi_FashionMnist/dataset/FashionMNIST/raw/train-images-idx3-ubyte.gz
+bbvi_FashionMnist/dataset/FashionMNIST/raw/train-labels-idx1-ubyte
+bbvi_FashionMnist/dataset/FashionMNIST/raw/train-labels-idx1-ubyte.gz
+bbvi_FashionMnist/dataset/test_images_csv.csv
+bbvi_FashionMnist/dataset/test_labels_csv.csv
+bbvi_FashionMnist/dataset/train_images_csv.csv
+bbvi_FashionMnist/dataset/train_labels_csv.csv
+bbvi_a9a/dataset/test_images_csv.csv
+bbvi_a9a/dataset/test_labels_csv.csv
+bbvi_a9a/dataset/train_images_csv.csv
+bbvi_a9a/dataset/train_labels_csv.csv
+>>>>>>> 74a11fceb9da48625b52defdbbca4eac65a2e6b2
