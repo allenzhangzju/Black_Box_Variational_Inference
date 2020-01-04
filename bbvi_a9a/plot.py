@@ -5,7 +5,7 @@ import seaborn as sns
 bbvi_basic=np.load('./result_elbo/bbvi_basic.npy')
 bbvi_cv=np.load('./result_elbo/bbvi_cv.npy')
 abbvi_basic=np.load('./result_elbo/abbvi_basic.npy')
-#repara=np.load('./result_elbo/ref_repara.npy')
+repara=np.load('./result_elbo/ref_repara.npy')
 #abbvi_cv=np.load('./result_elbo/abbvi_cv.npy')
 #test=np.load('./result_elbo/test.npy')
 

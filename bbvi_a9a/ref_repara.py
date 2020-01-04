@@ -5,20 +5,31 @@ from torchvision import transforms
 from class_data_load import DatasetFromCSV
 from functions import*
 import os
+
+def elbo_repara(images,labels,para,num_S,dim,scale,revise):
+    mu=para[0:dim]
+    std=torch.sqrt(torch.exp(para[dim:]))
+    elbo=torch.zeros(num_S)
+    for i in range(num_S):
+        eps=torch.randn_like(std)
+        z=mu+eps*std
+        normal1=torch.distributions.normal.Normal(mu,std)
+        log_q=torch.sum(normal1.log_prob(z))
+        normal2=torch.distributions.normal.Normal(torch.zeros(dim),torch.ones(dim))
+        log_prior=torch.sum(normal2.log_prob(z))
+        a=torch.matmul(images,z)
+        log_likelihood=torch.sum(torch.log(torch.sigmoid(torch.mul(a,labels))))
+        elbo[i]=log_likelihood*revise+log_prior/scale-log_q/scale
+    elbo_avg=elbo.mean()
+    return elbo_avg
 '''
-abbvi without any extension
+ref repara
 '''
 num_epochs=50
-batchSize=1500
+batchSize=1000
 num_S=5#训练的采样数量
-dim=123+1#这里+1是偏置
-#eta=0.05#eta、k、w、c这四个参数是和论文对应的
-#k=0.2  w=1e10  c=1e8
-#k=0.2  w=2e9  c=0.7e8
-k=0.2
-w=5e10
-c=3e8
-M=10
+dim=123+1
+eta=0.1#步长
 num_St=1000#测试的采样数量
 #读取数据
 transform=transforms.ToTensor()
@@ -36,48 +47,25 @@ scale=32561/batchSize
 elbo_list=[]
 para_list=[]
 
-#变量
-G_pow2=None
-grad_d=None
-para_last=None
-
+#AdaGrad
+G=torch.zeros((dim*2,dim*2))
 
 #开始迭代
 for epoch in range(num_epochs):
     for i ,data in enumerate(train_loader):
         images,labels=data_preprocess(data)
         revise=batchSize/len(images)
+        #过程变量
+        gradients=torch.zeros((num_S,dim*2))
         #ELBO evaluate & record para
         if (epoch*len(train_loader)+i)%10==0:
             para_list.append(para.clone().detach().numpy())
             elbo_list.append(elbo_evaluate(images,labels,para,dim,scale,revise,num_St).item())
         #算法起始位置
-        if(epoch==0 and i==0):
-            grad_d,G_pow2=nabla_F_Calc(images,labels,para,dim,num_S,scale,revise)
-            continue
-        #计算步长
-        rho=k/(w+G_pow2)**(1/3)
-        #迭代更新
-        para_last=para.clone().detach()
-        update=rho*grad_d
-        para.data+=update
-        #计算bt
-        b=c*rho*rho
-        if b>1: b=1
-        #计算nabla_F及二范数
-        nabla_F,temp=nabla_F_Calc(images,labels,para,dim,num_S,scale,revise)
-        G_pow2+=temp
-        #计算Delta  **************************************************************************
-        Delta_temp=torch.zeros((M,dim*2))
-        delta=(para-para_last).clone().detach().requires_grad_(False)
-        A=torch.rand(M)
-        for j in range(M):
-            para_a=((1-A[j])*para_last+A[j]*para).clone().detach()
-            Delta_temp[j]=hessian_F_Calc(images,labels,para_a,delta,dim,num_S,scale,revise)
-        Delta=Delta_temp.mean(0)
-        #************************************************************************************
-        grad_d=(1-b)*(grad_d+Delta)+b*nabla_F
-        print(b,torch.median(update.abs()),torch.max(update.abs()))
+        grad_avg=torch.autograd.grad(elbo_repara(images,labels,para,num_S,dim,scale,revise),para)[0]
+        G+=torch.matmul(grad_avg.view(dim*2,-1),grad_avg.view(-1,dim*2))
+        rho=eta/torch.sqrt(torch.diag(G))
+        para.data+=rho*grad_avg
         #print information
         if (epoch*len(train_loader)+i)%10==0:
             print('Epoch[{}/{}], step[{}/{}]'.format(\
@@ -91,10 +79,15 @@ for epoch in range(num_epochs):
 if not os.path.exists('./result_elbo'):
     os.makedirs('./result_elbo')
 result=np.array(elbo_list)
-np.save('./result_elbo/abbvi_basic.npy',result)
+np.save('./result_elbo/ref_repara.npy',result)
 
 
 if not os.path.exists('./result_para'):
     os.makedirs('./result_para')
 result=np.array(para_list)
-np.save('./result_para/abbvi_basic.npy',result)
+np.save('./result_para/ref_repara.npy',result)
+
+
+
+
+

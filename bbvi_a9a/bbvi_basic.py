@@ -8,8 +8,8 @@ import os
 '''
 bbvi without Rao_Blackwellization and Control Variates
 '''
-num_epochs=20
-batchSize=1000
+num_epochs=50
+batchSize=1500
 num_S=5#训练的采样数量
 dim=123+1
 eta=0.3#步长
@@ -41,8 +41,9 @@ for epoch in range(num_epochs):
         #过程变量
         gradients=torch.zeros((num_S,dim*2))
         #ELBO evaluate & record para
-        para_list.append(para.clone().detach().numpy())
-        elbo_list.append(elbo_evaluate(images,labels,para,dim,scale,revise,num_St).item())
+        if (epoch*len(train_loader)+i)%10==0:
+            para_list.append(para.clone().detach().numpy())
+            elbo_list.append(elbo_evaluate(images,labels,para,dim,scale,revise,num_St).item())
         #算法起始位置
         z_samples=sampleZ(para,dim,num_S)
         log_qs=ng_log_Qs(para,z_samples,dim)
@@ -57,7 +58,7 @@ for epoch in range(num_epochs):
         rho=eta/torch.sqrt(torch.diag(G))
         para.data+=rho*grad_avg
         #print information
-        if 1:
+        if (epoch*len(train_loader)+i)%10==0:
             print('Epoch[{}/{}], step[{}/{}]'.format(\
                 epoch+1,
                 num_epochs,
