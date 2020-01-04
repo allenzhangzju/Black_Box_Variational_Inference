@@ -274,7 +274,7 @@ def data_preprocess(data):
     images=data[0].view(-1,28*28)
     lens=len(images)
     labels=data[1].view(lens)
-    images=torch.div(images.float(),255*1.3)
+    images=torch.div(images.float(),255)-0.15
     #images=(torch.div(images.float(),255)-0.0)*1.0
     images=torch.cat([images,torch.ones((lens,1))],1)#补bias
     return images,labels

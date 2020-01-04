@@ -16,7 +16,7 @@ batchSize=500
 num_S=5#训练的采样数量
 dim=28*28+1
 eta=0.3#步长
-num_St=1000#测试的采样数量
+num_St=5000#测试的采样数量
 #读取数据
 transform=transforms.ToTensor()
 train_data=DatasetFromCSV('./dataset/train_images_csv.csv','./dataset/train_labels_csv.csv',transforms=transform)
