@@ -50,3 +50,6 @@ bbvi_a9a/dataset/test_labels_csv.csv
 bbvi_a9a/dataset/train_images_csv.csv
 bbvi_a9a/dataset/train_labels_csv.csv
 >>>>>>> 74a11fceb9da48625b52defdbbca4eac65a2e6b2
+bbvi_criteo4000000/dataset/criteo-train-sub500.txt
+bbvi_criteo4000000/dataset/criteo-train-sub4000000.txt
+bbvi_criteo4000000/dataset/criteo-train-sub1000000.txt
