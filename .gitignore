@@ -53,3 +53,7 @@ bbvi_a9a/dataset/train_labels_csv.csv
 bbvi_criteo4000000/dataset/criteo-train-sub500.txt
 bbvi_criteo4000000/dataset/criteo-train-sub4000000.txt
 bbvi_criteo4000000/dataset/criteo-train-sub1000000.txt
+bbvi_criteo4000000/result_elbo/abbvi_basic.npy
+bbvi_criteo4000000/result_elbo/bbvi_basic.npy
+bbvi_criteo4000000/result_para/abbvi_basic.npy
+bbvi_criteo4000000/result_para/bbvi_basic.npy
