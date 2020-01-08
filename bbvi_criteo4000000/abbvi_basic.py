@@ -15,9 +15,10 @@ num_St=100#测试的采样数量
 #eta=0.05#eta、k、w、c这四个参数是和论文对应的
 k=1
 w=5e13
-c=1e9
+c=1.3e9
 M=10
 num_St=100#测试的采样数量
+interval=20
 #读取数据
 train_index=np.linspace(0,999999,1000000)
 with open('./dataset/criteo-train-sub1000000.txt','r') as f:
@@ -47,8 +48,10 @@ for epoch in range(num_epochs):
         labels,images=data_preprocess(train_datas,data_index,dim)
         revise=batchSize/len(images)
         #ELBO evaluate & record para
-        #para_list.append(para.clone().detach().numpy())
-        elbo_list.append(elbo_evaluate(images,labels,para,dim,scale,revise,num_St).item())
+        if i==len(train_loader)-1:
+            para_list.append(para.clone().detach().numpy())
+        if (epoch*len(train_loader)+i)%interval==0:
+            elbo_list.append(elbo_evaluate(images,labels,para,dim,scale,revise,num_St).item())
         #算法起始位置
         if(epoch==0 and i==0):
             grad_d,G_pow2=nabla_F_Calc(images,labels,para,dim,num_S,scale,revise)
@@ -77,7 +80,7 @@ for epoch in range(num_epochs):
         grad_d=(1-b)*(grad_d+Delta)+b*nabla_F
         print(b,torch.median(update.abs()),torch.max(update.abs()))
         #print information
-        if 1:
+        if (epoch*len(train_loader)+i)%interval==0:
             print('Epoch[{}/{}], step[{}/{}]'.format(\
                 epoch+1,
                 num_epochs,

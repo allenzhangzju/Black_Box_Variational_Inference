@@ -13,6 +13,7 @@ num_S=5#训练的采样数量
 dim=1000000+1
 eta=0.05#步长
 num_St=100#测试的采样数量
+interval=20
 #读取数据
 train_index=np.linspace(0,999999,1000000)
 with open('./dataset/criteo-train-sub1000000.txt','r') as f:
@@ -39,8 +40,10 @@ for epoch in range(num_epochs):
         #过程变量
         gradients=torch.zeros((num_S,dim*2))
         #ELBO evaluate & record para
-        para_list.append(para.clone().detach().numpy())
-        elbo_list.append(elbo_evaluate(images,labels,para,dim,scale,revise,num_St).item())
+        if i==len(train_loader)-1:
+            para_list.append(para.clone().detach().numpy())
+        if (epoch*len(train_loader)+i)%interval==0:
+            elbo_list.append(elbo_evaluate(images,labels,para,dim,scale,revise,num_St).item())
         #算法起始位置
         z_samples=sampleZ(para,dim,num_S)
         log_qs=ng_log_Qs(para,z_samples,dim)
@@ -57,7 +60,7 @@ for epoch in range(num_epochs):
         para.data+=update
         #print information
         print(torch.median(update.abs()),torch.max(update.abs()))
-        if 1:
+        if (epoch*len(train_loader)+i)%interval==0:
             print('Epoch[{}/{}], step[{}/{}]'.format(\
                 epoch+1,
                 num_epochs,
