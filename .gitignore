@@ -57,3 +57,5 @@ bbvi_criteo4000000/result_elbo/abbvi_basic.npy
 bbvi_criteo4000000/result_elbo/bbvi_basic.npy
 bbvi_criteo4000000/result_para/abbvi_basic.npy
 bbvi_criteo4000000/result_para/bbvi_basic.npy
+bbvi_criteo4000000/result_elbo/ref_repara.npy
+bbvi_criteo4000000/result_para/ref_repara.npy
